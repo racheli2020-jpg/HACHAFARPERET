@@ -2,51 +2,87 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>החפרפרת</title>
+    <title>🕵️‍♂️ החפרפרת - הגרסה המעודכנת</title>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #2c3e50; color: white; padding: 20px; }
-        .card { background: #ecf0f1; color: #2c3e50; padding: 20px; border-radius: 15px; max-width: 400px; margin: auto; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; text-align: center; background: #2c3e50; color: white; padding: 20px; }
+        .card { background: #ecf0f1; color: #2c3e50; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 450px; margin: auto; }
         .hidden { display: none; }
-        button { padding: 12px; margin: 10px; width: 80%; cursor: pointer; background: #e74c3c; color: white; border: none; border-radius: 8px; font-weight: bold; }
-        input { padding: 10px; width: 80%; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; }
-        .spy-text { color: red; font-weight: bold; font-size: 1.5em; }
+        button { padding: 15px; margin: 10px; width: 85%; border-radius: 12px; border: none; cursor: pointer; background: #e74c3c; color: white; font-weight: bold; font-size: 18px; transition: 0.3s; }
+        button:hover { background: #c0392b; transform: scale(1.02); }
+        input { padding: 12px; width: 85%; margin-bottom: 10px; border-radius: 8px; border: 2px solid #bdc3c7; font-size: 16px; text-align: center; }
+        .spy-text { color: #e74c3c; font-weight: bold; font-size: 1.8em; animation: shake 0.5s infinite; }
+        @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(2deg); } 50% { transform: rotate(0deg); } 75% { transform: rotate(-2deg); } 100% { transform: rotate(0deg); } }
+        .q-box { background: #dfe6e9; padding: 15px; border-radius: 15px; border-right: 8px solid #3498db; margin: 20px 0; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>🕵️‍♂️ החפרפרת</h1>
+        <h1>🕵️‍♂️ משחק החפרפרת</h1>
         
         <div id="setup">
-            <p>רשמו שמות עם פסיקים:</p>
-            <input type="text" id="pNames" placeholder="למשל: רחלי, אמא, אבא">
-            <button onclick="startGame()">התחל משחק!</button>
+            <p>מי משחק? (רשמו שמות עם פסיקים):</p>
+            <input type="text" id="pNames" placeholder="רחלי, אמא, אבא, יוסי...">
+            <button onclick="startGame()">🚀 יוצאים לדרך!</button>
         </div>
 
-        <div id="play" class="hidden">
+        <div id="reveal" class="hidden">
             <h2 id="turnName"></h2>
-            <p id="wordBox" class="hidden" style="font-size: 1.3em; margin: 20px 0;"></p>
-            <button id="showBtn" onclick="showWord()">חשוף מילה</button>
-            <button id="nextBtn" class="hidden" onclick="nextPlayer()">הבא בתור</button>
+            <div id="wordBox" class="hidden" style="margin: 20px 0;">
+                <p id="wordContent" style="font-size: 1.4em;"></p>
+            </div>
+            <button id="showBtn" onclick="showWord()">👁️ חשוף מילה</button>
+            <button id="nextBtn" class="hidden" onclick="nextPlayer()">✅ הבנתי, העבר הלאה</button>
+        </div>
+
+        <div id="game" class="hidden">
+            <h2>🔎 שלב החקירה!</h2>
+            <div class="q-box">
+                <p id="qInfo" style="color: #7f8c8d; font-size: 0.9em;"></p>
+                <p id="qText" style="font-size: 1.3em; font-weight: bold; color: #2980b9;"></p>
+            </div>
+            <button id="nextQBtn" onclick="generateQuestion()">❓ שאלה הבאה</button>
+            <button id="toVoteBtn" class="hidden" onclick="alert('עכשיו תעברו להצבעה בעל פה! מי החפרפרת?')">🗳️ לסיום והצבעה</button>
         </div>
     </div>
 
     <script>
-        let players = [], spy = "", pIdx = 0;
-        const words = ["פיצה", "גלידה", "מטוס", "ים", "שוקולד", "מכונית"];
+        let players = [], spy = "", word = "", pIdx = 0, qCount = 0;
+        
+        const wordsList = [
+            "גרביים מסריחות 🧦", "פיצה עם אננס 🍕", "טיול שנתי 🚌", 
+            "שיעור חשבון 📐", "יוטיוב 📺", "המבורגר 🍔", 
+            "רופא שיניים 🦷", "בריכת כדורים 🎈", "סמארטפון 📱", 
+            "חופשה באילת 🏖️", "פופקורן 🍿", "מסיבת הפתעה 🥳"
+        ];
+
+        const questionsList = [
+            "אם זה היה בן אדם, איך הוא היה נראה? 🤔",
+            "באיזה צבע הדבר הזה בדרך כלל? 🎨",
+            "זה יותר גדול או יותר קטן מפיל? 🐘",
+            "אפשר לאכול את זה? 😋",
+            "כמה זה עולה בערך? 💰",
+            "מתי בפעם האחרונה ראית את זה? 🕒",
+            "זה עושה רעש? 🔊",
+            "היית לוקח/ת את זה לטיול בירח? 🌙"
+        ];
 
         function startGame() {
             let val = document.getElementById('pNames').value;
-            if(!val.includes(',')) return alert("חייבים פסיק בין השמות!");
+            if(!val.includes(',')) return alert("אופס! שכחת פסיק בין השמות 😅");
+            
             players = val.split(',').map(n => n.trim());
+            if(players.length < 3) return alert("צריך לפחות 3 שחקנים למשחק טוב! 👥");
+
             spy = players[Math.floor(Math.random() * players.length)];
+            word = wordsList[Math.floor(Math.random() * wordsList.length)];
             
             document.getElementById('setup').classList.add('hidden');
-            document.getElementById('play').classList.remove('hidden');
+            document.getElementById('reveal').classList.remove('hidden');
             updateUI();
         }
 
         function updateUI() {
-            document.getElementById('turnName').innerText = "תור: " + players[pIdx];
+            document.getElementById('turnName').innerText = "תור השחקן: " + players[pIdx] + " 👤";
             document.getElementById('wordBox').classList.add('hidden');
             document.getElementById('showBtn').classList.remove('hidden');
             document.getElementById('nextBtn').classList.add('hidden');
@@ -54,13 +90,13 @@
 
         function showWord() {
             let isSpy = (players[pIdx] === spy);
-            let msg = isSpy ? "אתה החפרפרת חביבי!" : "המילה היא: " + words[Math.floor(Math.random() * words.length)];
+            let content = isSpy ? "אתה החפרפרת חביבי! 😈" : "המילה הסודית: " + word;
             
-            let box = document.getElementById('wordBox');
-            box.innerText = msg;
-            box.className = isSpy ? "spy-text" : "";
+            let display = document.getElementById('wordContent');
+            display.innerText = content;
+            display.className = isSpy ? "spy-text" : "";
             
-            box.classList.remove('hidden');
+            document.getElementById('wordBox').classList.remove('hidden');
             document.getElementById('showBtn').classList.add('hidden');
             document.getElementById('nextBtn').classList.remove('hidden');
         }
@@ -70,8 +106,28 @@
             if(pIdx < players.length) {
                 updateUI();
             } else {
-                alert("זהו! כולם יודעים מה הם. עכשיו אפשר להתחיל לשאול שאלות!");
-                location.reload(); 
+                document.getElementById('reveal').classList.add('hidden');
+                document.getElementById('game').classList.remove('hidden');
+                generateQuestion();
+            }
+        }
+
+        function generateQuestion() {
+            if(qCount < 4) { 
+                let asker = players[Math.floor(Math.random() * players.length)];
+                let answerer = players[Math.floor(Math.random() * players.length)];
+                while(asker === answerer) answerer = players[Math.floor(Math.random() * players.length)];
+                
+                let randomQ = questionsList[Math.floor(Math.random() * questionsList.length)];
+                
+                document.getElementById('qInfo').innerText = asker + " שואל/ת את " + answerer + ":";
+                document.getElementById('qText').innerText = randomQ;
+                qCount++;
+            } else {
+                document.getElementById('qInfo').innerText = "זהו זה!";
+                document.getElementById('qText').innerText = "זמן להחליט... מי החפרפרת? 🤔";
+                document.getElementById('nextQBtn').classList.add('hidden');
+                document.getElementById('toVoteBtn').classList.remove('hidden');
             }
         }
     </script>
