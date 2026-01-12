@@ -1,76 +1,7 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <title>החפרפרת</title>
-    <style>
-        body { font-family: sans-serif; text-align: center; background: #eee; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 10px; max-width: 350px; margin: auto; }
-        .hidden { display: none; }
-        button { padding: 10px; width: 80%; margin: 10px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; }
-        .spy-text { color: red; font-weight: bold; font-size: 20px; }
-    </style>
-</head>
+<html>
 <body>
-    <div class="card">
-        <h1>🕵️‍♂️ החפרפרת</h1>
-        
-        <div id="setup">
-            <input type="text" id="namesInput" placeholder="שמות עם פסיק (אמא, רחלי)">
-            <button onclick="startGame()">התחל משחק!</button>
-        </div>
-
-        <div id="play" class="hidden">
-            <h2 id="turnName"></h2>
-            <p id="wordBox" class="hidden"></p>
-            <button id="showBtn" onclick="showWord()">חשוף מילה</button>
-            <button id="nextBtn" class="hidden" onclick="nextPlayer()">הבא בתור</button>
-        </div>
-    </div>
-
-    <script>
-        let players = [], spy = "", pIdx = 0;
-        const words = ["פיצה", "גלידה", "מטוס", "ים"];
-
-        function startGame() {
-            let val = document.getElementById('namesInput').value;
-            if(!val.includes(',')) return alert("חייבים פסיק בין השמות!");
-            
-            players = val.split(',').map(n => n.trim());
-            spy = players[Math.floor(Math.random() * players.length)];
-            
-            document.getElementById('setup').classList.add('hidden');
-            document.getElementById('play').classList.remove('hidden');
-            updateUI();
-        }
-
-        function updateUI() {
-            document.getElementById('turnName').innerText = "תור: " + players[pIdx];
-            document.getElementById('wordBox').classList.add('hidden');
-            document.getElementById('showBtn').classList.remove('hidden');
-            document.getElementById('nextBtn').classList.add('hidden');
-        }
-
-        function showWord() {
-            let msg = (players[pIdx] === spy) ? "אתה החפרפרת חביבי!" : "המילה: " + words[0];
-            let box = document.getElementById('wordBox');
-            box.innerText = msg;
-            box.className = (players[pIdx] === spy) ? "spy-text" : "";
-            
-            box.classList.remove('hidden');
-            document.getElementById('showBtn').classList.add('hidden');
-            document.getElementById('nextBtn').classList.remove('hidden');
-        }
-
-        function nextPlayer() {
-            pIdx++;
-            if(pIdx < players.length) {
-                updateUI();
-            } else {
-                alert("כולם ראו את המילים! עכשיו דברו וגלו מי החפרפרת.");
-                location.reload(); // בינתיים זה רק מאפס את המשחק
-            }
-        }
-    </script>
+    <h1>בדיקת תקינות</h1>
+    <button onclick="alert('הקוד עובד!')">לחצי עליי</button>
 </body>
 </html>
