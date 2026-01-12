@@ -2,104 +2,125 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>משחק החפרפרת</title>
+    <title>החפרפרת</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #f4f7f6; padding: 20px; direction: rtl; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
-        button { background-color: #3498db; color: white; border: none; padding: 12px 24px; border-radius: 10px; cursor: pointer; font-size: 18px; margin: 10px 5px; font-weight: bold; width: 85%; }
-        input { padding: 12px; width: 85%; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; text-align: center; }
-        .hidden { display: none !important; }
-        .highlight { background: #fff9c4; padding: 15px; border-radius: 10px; border: 2px solid #fbc02d; margin: 15px 0; font-weight: bold; }
+        body { font-family: sans-serif; text-align: center; background: #2c3e50; color: white; padding: 20px; }
+        .card { background: #ecf0f1; color: #2c3e50; padding: 20px; border-radius: 15px; max-width: 400px; margin: auto; }
+        .hidden { display: none; }
+        button { padding: 12px; margin: 10px; width: 80%; cursor: pointer; background: #e74c3c; color: white; border: none; border-radius: 8px; font-weight: bold; }
+        input { padding: 10px; width: 80%; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; }
+        .spy { color: red; font-weight: bold; font-size: 1.5em; }
     </style>
 </head>
 <body>
-    <div class="card" id="s-start">
-        <h2>🕵️ משחק החפרפרת</h2>
-        <input type="text" id="names" placeholder="שמות עם פסיקים (נועה, דן, שי)">
-        <button onclick="startGame()">התחל משחק!</button>
-    </div>
-    <div class="card hidden" id="s-reveal">
-        <h3 id="pName"></h3>
-        <button id="showBtn" onclick="revealSecret()">חשוף מילה 🤫</button>
-        <div id="secretBox" class="hidden">
-            <p id="info" style="font-size:22px; font-weight:bold; color:#27ae60;"></p>
-            <button onclick="nextPlayer()">הבנתי, העבר הלאה</button>
+    <div class="card">
+        <h1>🕵️‍♂️ החפרפרת</h1>
+        
+        <div id="setup">
+            <p>רשמו שמות עם פסיקים:</p>
+            <input type="text" id="pNames" placeholder="למשל: רחלי, אמא, אבא">
+            <button id="startBtn">התחל משחק!</button>
+        </div>
+
+        <div id="reveal" class="hidden">
+            <h2 id="pNameDisplay"></h2>
+            <p id="pWordDisplay" class="hidden"></p>
+            <button id="showBtn">חשוף מילה</button>
+            <button id="nextBtn" class="hidden">הבא בתור</button>
+        </div>
+
+        <div id="game" class="hidden">
+            <h2>שלב השאלות 🔍</h2>
+            <p id="qInfo"></p>
+            <p id="qText" style="font-weight: bold; font-size: 1.2em;"></p>
+            <button id="qBtn">שאלה הבאה</button>
+        </div>
+
+        <div id="vote" class="hidden">
+            <h2 id="voteTitle"></h2>
+            <div id="vButtons"></div>
+        </div>
+
+        <div id="results" class="hidden">
+            <h1 id="resMsg"></h1>
+            <p id="resSpy"></p>
+            <button onclick="location.reload()">משחק חדש</button>
         </div>
     </div>
-    <div class="card hidden" id="s-game">
-        <h3>🎮 שלב השאלות</h3>
-        <div class="highlight" id="qTurn"></div>
-        <div class="highlight" style="background:#e1f5fe; border-color:#81d4fa;"> השאלה: <span id="qText"></span></div>
-        <button onclick="nextQuestion()">השאלה הבאה ➡️</button>
-    </div>
-    <div class="card hidden" id="s-vote">
-        <h3 id="voterTitle"></h3>
-        <div id="voteButtons"></div>
-    </div>
-    <div class="card hidden" id="s-results">
-        <h1 id="winMsg"></h1>
-        <p id="spyReveal"></p>
-        <button onclick="location.reload()">משחק חדש 🔄</button>
-    </div>
 
-<script>
-    let players=[], spy="", word="", pIdx=0, qIdx=0, votes={};
-    const words=["פיצה", "המבורגר", "סושי", "גלידה", "פלאפל", "פסטה", "שוקולד"];
-    const questions=["האם זה חם?", "האם אוכלים את זה בידיים?", "האם זה מתוק?", "האם יש בזה בצק?", "האם זה יקר?", "האם ילדים אוהבים את זה?"];
+    <script>
+        // כל הקוד נמצא כאן בצורה בטוחה
+        let players = [], spy = "", word = "", pIdx = 0, qIdx = 0, votes = {};
+        const words = ["פיצה", "מכונת כביסה", "בית ספר", "טיסה", "גלידה"];
+        const qs = ["איפה מוצאים את זה?", "מה הצבע של זה?", "זה גדול או קטן?", "זה טעים?"];
 
-    function startGame() {
-        let v = document.getElementById('names').value;
-        players = v.split(',').map(s=>s.trim()).filter(s=>s!=="");
-        if(players.length < 3) return alert("צריך 3 שחקנים!");
-        spy = players[Math.floor(Math.random()*players.length)];
-        word = words[Math.floor(Math.random()*words.length)];
-        players.forEach(p=>votes[p]=0);
-        document.getElementById('s-start').classList.add('hidden');
-        document.getElementById('s-reveal').classList.remove('hidden');
-        updateP();
-    }
-    function updateP() {
-        document.getElementById('pName').innerText = "תור: " + players[pIdx];
-        document.getElementById('secretBox').classList.add('hidden');
-        document.getElementById('showBtn').classList.remove('hidden');
-    }
-    function revealSecret() {
-        document.getElementById('info').innerText = (players[pIdx]===spy) ? "אתה החפרפרת! 🕵️" : "המילה: " + word;
-        document.getElementById('secretBox').classList.remove('hidden');
-        document.getElementById('showBtn').classList.add('hidden');
-    }
-    function nextPlayer() {
-        pIdx++;
-        if(pIdx < players.length) updateP();
-        else { document.getElementById('s-reveal').classList.add('hidden'); document.getElementById('s-game').classList.remove('hidden'); nextQuestion(); }
-    }
-    function nextQuestion() {
-        if(qIdx < questions.length) {
-            let a=Math.floor(Math.random()*players.length), b=Math.floor(Math.random()*players.length);
-            while(a===b) b=Math.floor(Math.random()*players.length);
-            document.getElementById('qTurn').innerText = players[a] + " שואל/ת את " + players[b];
-            document.getElementById('qText').innerText = questions[qIdx++];
-        } else { startVote(); }
-    }
-    function startVote() {
-        pIdx=0; document.getElementById('s-game').classList.add('hidden'); document.getElementById('s-vote').classList.remove('hidden'); updateVote();
-    }
-    function updateVote() {
-        document.getElementById('voterTitle').innerText = "הצבעה: " + players[pIdx];
-        let h = ""; players.forEach(p => { if(p!==players[pIdx]) h += <button onclick="doVote('${p}')">${p}</button>; });
-        document.getElementById('voteButtons').innerHTML = h;
-    }
-    function doVote(p) {
-        votes[p]++; pIdx++;
-        if(pIdx < players.length) updateVote();
-        else {
-            document.getElementById('s-vote').classList.add('hidden'); document.getElementById('s-results').classList.remove('hidden');
-            let win = Object.keys(votes).reduce((a,b)=>votes[a]>votes[b]?a:b);
-            document.getElementById('winMsg').innerText = (win===spy) ? "תפסתם אותה! 🎉" : "החפרפרת ניצחה! 😈";
-            document.getElementById('spyReveal').innerText = "החפרפרת הייתה: " + spy;
+        // חיבור הכפתורים לקוד (בצורה שמונעת שגיאות doStart is not defined)
+        document.getElementById('startBtn').onclick = function() {
+            let val = document.getElementById('pNames').value;
+            if(!val.includes(',')) { alert("חייבים פסיק בין השמות!"); return; }
+            players = val.split(',').map(n => n.trim());
+            spy = players[Math.floor(Math.random() * players.length)];
+            word = words[Math.floor(Math.random() * words.length)];
+            document.getElementById('setup').classList.add('hidden');
+            document.getElementById('reveal').classList.remove('hidden');
+            updateRev();
+        };
+
+        function updateRev() {
+            document.getElementById('pNameDisplay').innerText = "תור: " + players[pIdx];
+            document.getElementById('pWordDisplay').classList.add('hidden');
+            document.getElementById('showBtn').classList.remove('hidden');
+            document.getElementById('nextBtn').classList.add('hidden');
         }
-    }
-</script>
-</body>
-</html>
+
+        document.getElementById('showBtn').onclick = function() {
+            let txt = (players[pIdx] === spy) ? "אתה החפרפרת חביבי!" : "המילה: " + word;
+            let el = document.getElementById('pWordDisplay');
+            el.innerText = txt;
+            el.className = (players[pIdx] === spy) ? "spy" : "";
+            el.classList.remove('hidden');
+            document.getElementById('showBtn').classList.add('hidden');
+            document.getElementById('nextBtn').classList.remove('hidden');
+        };
+
+        document.getElementById('nextBtn').onclick = function() {
+            pIdx++;
+            if(pIdx < players.length) updateRev();
+            else {
+                document.getElementById('reveal').classList.add('hidden');
+                document.getElementById('game').classList.remove('hidden');
+                showQuestion();
+            }
+        };
+
+        function showQuestion() {
+            if(qIdx < 3) {
+                let a = players[Math.floor(Math.random()*players.length)];
+                let b = players[Math.floor(Math.random()*players.length)];
+                document.getElementById('qInfo').innerText = a + " שואל/ת את " + b + ":";
+                document.getElementById('qText').innerText = qs[qIdx++];
+            } else {
+                startVote();
+            }
+        }
+
+        document.getElementById('qBtn').onclick = showQuestion;
+
+        function startVote() {
+            pIdx = 0;
+            players.forEach(p => votes[p] = 0);
+            document.getElementById('game').classList.add('hidden');
+            document.getElementById('vote').classList.remove('hidden');
+            updateVote();
+        }
+
+        function updateVote() {
+            document.getElementById('voteTitle').innerText = "הצבעה: " + players[pIdx];
+            let html = "";
+            players.forEach(p => {
+                if(p !== players[pIdx]) html += <button onclick="submitVote('${p}')">${p}</button>;
+            });
+            document.getElementById('vButtons').innerHTML = html;
+        }
+
+        window.submitVote =
