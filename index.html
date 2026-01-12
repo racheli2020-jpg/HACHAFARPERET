@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🕵️‍♂️ משחק החפרפרת</title>
+    <title>🕵️‍♂️ החפרפרת - סבבי חקירה מסודרים</title>
     <style>
         :root { --primary: #3498db; --danger: #e74c3c; --success: #27ae60; --bg: #2c3e50; }
-        body { font-family: system-ui, -apple-system, sans-serif; text-align: center; background: var(--bg); color: white; padding: 20px; margin: 0; }
+        body { font-family: system-ui, sans-serif; text-align: center; background: var(--bg); color: white; padding: 20px; margin: 0; }
         .card { background: #ffffff; color: #333; padding: 25px; border-radius: 20px; max-width: 420px; margin: 20px auto; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
         .hidden { display: none; }
-        button { padding: 15px; margin: 10px; width: 90%; border-radius: 12px; border: none; cursor: pointer; background: var(--danger); color: white; font-size: 18px; font-weight: bold; }
+        button { padding: 15px; margin: 10px; width: 90%; border-radius: 12px; border: none; cursor: pointer; background: var(--danger); color: white; font-size: 18px; font-weight: bold; transition: 0.2s; }
+        button:hover { opacity: 0.9; transform: scale(1.02); }
         input { padding: 12px; width: 85%; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; text-align: center; }
         .q-box { background: #f0f7ff; padding: 15px; border-radius: 12px; margin: 15px 0; border-right: 6px solid var(--primary); color: #2c3e50; }
         .spy-text { color: var(--danger); font-weight: bold; font-size: 1.5em; }
+        .vote-btn { background: #34495e !important; width: 45% !important; margin: 5px !important; }
     </style>
 </head>
 <body>
@@ -21,7 +23,7 @@
         
         <div id="step1">
             <p>רשמו שמות (מופרדים בפסיק):</p>
-            <input type="text" id="namesInput" placeholder="רחלי, אמא, אבא...">
+            <input type="text" id="namesInput" placeholder="יוסי, דנה, איתי...">
             <button id="startBtn">מתחילים! ✨</button>
         </div>
 
@@ -32,19 +34,35 @@
             <button id="nextPlayerBtn" class="hidden">הבנתי, להעביר הלאה ✅</button>
         </div>
 
+        <div id="step3_pre" class="hidden">
+            <h2 id="roundTitle">🔎 סבב חקירה א'</h2>
+            <p>העבירו את המכשיר ל:</p>
+            <h1 id="askerNameLabel" style="color: var(--primary);"></h1>
+            <button id="readyToAskBtn">אני מוכן/ה לשאול ❓</button>
+        </div>
+
         <div id="step3" class="hidden">
-            <h2>🔎 שלב החקירה</h2>
             <div class="q-box">
-                <p id="askerInfo" style="font-weight: bold; margin-bottom: 5px;"></p>
-                <p id="questionDisplay" style="font-size: 1.2em;"></p>
+                <p id="askerInfo" style="font-weight: bold; margin-bottom: 5px; color: var(--primary);"></p>
+                <p id="questionDisplay" style="font-size: 1.2em; font-weight: bold;"></p>
             </div>
-            <button id="nextQBtn">שאלה הבאה ❓</button>
+            <button id="nextQBtn">שאלה הבאה ✅</button>
+        </div>
+
+        <div id="step4_pre" class="hidden">
+            <h2>🗳️ הצבעה חשאית</h2>
+            <p>העבירו את המכשיר ל:</p>
+            <h1 id="voterNameLabel" style="color: var(--primary);"></h1>
+            <button id="readyToVoteBtn">אני מוכן/ה להצביע 🤫</button>
         </div>
 
         <div id="step4" class="hidden">
-            <h2>🗳️ הצבעה חשאית</h2>
-            <p id="voterName" style="font-weight: bold; color: var(--primary);"></p>
-            <div id="voteOptions"></div>
+            <h2 id="currentVoterTitle"></h2>
+            <div id="voteOptions" style="display: flex; flex-wrap: wrap; justify-content: center;"></div>
+            <div id="spyJokeArea" class="hidden">
+                <p id="spyJokeText" style="color: var(--primary); font-style: italic; margin: 20px;"></p>
+                <button id="spyContinueBtn">הבנתי, להמשיך 🤫</button>
+            </div>
         </div>
 
         <div id="step5" class="hidden">
@@ -58,17 +76,16 @@
         let players = [], spy = "", word = "", index = 0;
         let questionsQueue = [], votes = {}, currentVoterIdx = 0;
         
-        const words = ["פיצה 🍕", "סמארטפון 📱", "גלידה 🍦", "המבורגר 🍔", "שוקולד 🍫", "מזגן ❄️", "מפתח 🔑", "כרית 😴"];
-        const questionsList = ["איך זה נראה? 🤔", "באיזה צבע זה? 🎨", "אפשר לאכול את זה? 😋", "זה יקר? 💰", "מתי ראית את זה לאחרונה? 🕒"];
+        const words = ["פיצה 🍕", "סמארטפון 📱", "גלידה 🍦", "המבורגר 🍔", "שוקולד 🍫", "מזגן ❄️", "מפתח 🔑", "כרית 😴", "יוטיוב 📺", "בריכת כדורים 🎈", "חופשה באילת 🏖️", "רופא שיניים 🦷"];
+        const questionsList = ["איך זה נראה? 🤔", "באיזה צבע זה? 🎨", "אפשר לאכול את זה? 😋", "זה יקר? 💰", "זה עושה רעש? 🔊", "זה נמצא בתוך הבית? 🏠", "זה יותר גדול מחתול? 🐈", "אפשר לקנות את זה בסופר? 🛒", "משתמשים בזה כל יום? 📅", "זה נכנס לתוך תיק? 🎒", "זה רך או קשה? ☁️", "זה משהו שצריך חשמל? ⚡", "זה משהו שמביא שמחה? 😊"];
 
-        // שלב 1: התחלה
         document.getElementById('startBtn').addEventListener('click', function() {
             let input = document.getElementById('namesInput').value;
             if(!input.includes(',')) return alert("שימו פסיק בין השמות!");
             players = input.split(',').map(s => s.trim()).filter(s => s !== "");
+            if(players.length < 3) return alert("צריך לפחות 3 שחקנים!");
             spy = players[Math.floor(Math.random() * players.length)];
             word = words[Math.floor(Math.random() * words.length)];
-            
             document.getElementById('step1').classList.add('hidden');
             document.getElementById('step2').classList.remove('hidden');
             updateTurn();
@@ -81,7 +98,6 @@
             document.getElementById('nextPlayerBtn').classList.add('hidden');
         }
 
-        // שלב 2: חשיפה
         document.getElementById('revealBtn').addEventListener('click', function() {
             let display = document.getElementById('wordDisplay');
             if (players[index] === spy) {
@@ -98,78 +114,110 @@
 
         document.getElementById('nextPlayerBtn').addEventListener('click', function() {
             index++;
-            if(index < players.length) {
-                updateTurn();
-            } else {
-                startQuestions();
-            }
+            if(index < players.length) updateTurn();
+            else prepareQuestions();
         });
 
-        // שלב 3: שאלות
-        function startQuestions() {
+        function prepareQuestions() {
+            let pool = [...questionsList].sort(() => 0.5 - Math.random());
+            
+            // סבב א': כל אחד שואל את זה שמימינו
             for(let i=0; i < players.length; i++) {
-                let q = questionsList[Math.floor(Math.random() * questionsList.length)];
-                questionsQueue.push({asker: players[i], answerer: players[(i+1)%players.length], q: q});
+                questionsQueue.push({
+                    round: "סבב חקירה א'",
+                    asker: players[i], 
+                    answerer: players[(i+1)%players.length], 
+                    q: pool.pop() || "זה שימושי?"
+                });
             }
+            // סבב ב': כל אחד שואל את זה שמשמאלו
+            for(let i=0; i < players.length; i++) {
+                questionsQueue.push({
+                    round: "סבב חקירה ב'",
+                    asker: players[i], 
+                    answerer: players[(i + players.length - 1) % players.length], 
+                    q: pool.pop() || "זה נמצא בבית?"
+                });
+            }
+            
             document.getElementById('step2').classList.add('hidden');
-            document.getElementById('step3').classList.remove('hidden');
-            showNextQuestion();
+            renderQuestionPre();
         }
 
-        function showNextQuestion() {
+        function renderQuestionPre() {
             if(questionsQueue.length > 0) {
-                let current = questionsQueue.shift();
-                document.getElementById('askerInfo').innerText = "👤 " + current.asker + " ➔ " + current.answerer;
-                document.getElementById('questionDisplay').innerText = current.q;
-            } else {
-                startVote();
-            }
+                document.getElementById('step3').classList.add('hidden');
+                document.getElementById('step3_pre').classList.remove('hidden');
+                document.getElementById('roundTitle').innerText = questionsQueue[0].round;
+                document.getElementById('askerNameLabel').innerText = questionsQueue[0].asker;
+            } else startVoteFlow();
         }
 
-        document.getElementById('nextQBtn').addEventListener('click', showNextQuestion);
+        document.getElementById('readyToAskBtn').addEventListener('click', function() {
+            document.getElementById('step3_pre').classList.add('hidden');
+            document.getElementById('step3').classList.remove('hidden');
+            let current = questionsQueue.shift();
+            document.getElementById('askerInfo').innerText = "👤 " + current.asker + " שואל/ת את " + current.answerer + ":";
+            document.getElementById('questionDisplay').innerText = current.q;
+        });
 
-        // שלב 4: הצבעה
-        function startVote() {
+        document.getElementById('nextQBtn').addEventListener('click', renderQuestionPre);
+
+        function startVoteFlow() {
             document.getElementById('step3').classList.add('hidden');
-            document.getElementById('step4').classList.remove('hidden');
             players.forEach(p => votes[p] = 0);
-            renderVoteTurn();
+            renderVoteStepPre();
         }
 
-        function renderVoteTurn() {
+        function renderVoteStepPre() {
             if(currentVoterIdx < players.length) {
-                document.getElementById('voterName').innerText = "תור " + players[currentVoterIdx] + " להצביע:";
-                let optionsDiv = document.getElementById('voteOptions');
-                optionsDiv.innerHTML = ""; // ניקוי
+                document.getElementById('step4').classList.add('hidden');
+                document.getElementById('step4_pre').classList.remove('hidden');
+                document.getElementById('voterNameLabel').innerText = players[currentVoterIdx];
+            } else showFinalResults();
+        }
 
+        document.getElementById('readyToVoteBtn').addEventListener('click', function() {
+            document.getElementById('step4_pre').classList.add('hidden');
+            document.getElementById('step4').classList.remove('hidden');
+            renderActualVoteOptions();
+        });
+
+        function renderActualVoteOptions() {
+            const isSpy = (players[currentVoterIdx] === spy);
+            document.getElementById('currentVoterTitle').innerText = players[currentVoterIdx] + ", למי את/ה מצביע/ה?";
+            const optionsDiv = document.getElementById('voteOptions');
+            const jokeArea = document.getElementById('spyJokeArea');
+            optionsDiv.innerHTML = "";
+
+            if (isSpy) {
+                optionsDiv.classList.add('hidden');
+                jokeArea.classList.remove('hidden');
+                let others = players.filter(p => p !== spy);
+                let target = others[Math.floor(Math.random() * others.length)];
+                document.getElementById('spyJokeText').innerText = "אתה הרי יודע שזה אתה... 😉 נסה להיראות תמים! אולי תפיל את התיק על " + target + "?";
+            } else {
+                optionsDiv.classList.remove('hidden');
+                jokeArea.classList.add('hidden');
                 players.forEach(p => {
                     if(p !== players[currentVoterIdx]) {
                         let btn = document.createElement('button');
                         btn.innerText = p;
-                        btn.style.background = "#34495e";
-                        btn.style.width = "45%";
-                        btn.style.margin = "5px";
-                        btn.onclick = function() {
-                            votes[p]++;
-                            currentVoterIdx++;
-                            renderVoteTurn();
-                        };
+                        btn.className = "vote-btn";
+                        btn.onclick = function() { votes[p]++; currentVoterIdx++; renderVoteStepPre(); };
                         optionsDiv.appendChild(btn);
                     }
                 });
-            } else {
-                showFinalResults();
             }
         }
 
-        // שלב 5: תוצאות
+        document.getElementById('spyContinueBtn').addEventListener('click', function() { currentVoterIdx++; renderVoteStepPre(); });
+
         function showFinalResults() {
             document.getElementById('step4').classList.add('hidden');
             document.getElementById('step5').classList.remove('hidden');
-            
             let suspected = Object.keys(votes).reduce((a, b) => votes[a] > votes[b] ? a : b);
             let status = document.getElementById('winStatus');
-            
             if(suspected === spy) {
                 status.innerText = "ניצחתם! 🎉";
                 status.style.color = "#27ae60";
