@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>🕵️‍♂️ החפרפרת - הגרסה המעודכנת</title>
+    <title>🕵️‍♂️ החפרפרת - הגרסה המתוקנת</title>
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; text-align: center; background: #2c3e50; color: white; padding: 20px; }
         .card { background: #ecf0f1; color: #2c3e50; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 450px; margin: auto; }
@@ -21,7 +21,7 @@
         
         <div id="setup">
             <p>מי משחק? (רשמו שמות עם פסיקים):</p>
-            <input type="text" id="pNames" placeholder="רחלי, אמא, אבא, יוסי...">
+            <input type="text" id="pNames" placeholder="רחלי, אמא, אבא...">
             <button onclick="startGame()">🚀 יוצאים לדרך!</button>
         </div>
 
@@ -41,18 +41,19 @@
                 <p id="qText" style="font-size: 1.3em; font-weight: bold; color: #2980b9;"></p>
             </div>
             <button id="nextQBtn" onclick="generateQuestion()">❓ שאלה הבאה</button>
-            <button id="toVoteBtn" class="hidden" onclick="alert('עכשיו תעברו להצבעה בעל פה! מי החפרפרת?')">🗳️ לסיום והצבעה</button>
+            <button onclick="location.reload()">🔄 משחק חדש</button>
         </div>
     </div>
 
     <script>
-        let players = [], spy = "", word = "", pIdx = 0, qCount = 0;
+        let players = [], spy = "", selectedWord = "", pIdx = 0, qCount = 0;
         
         const wordsList = [
             "גרביים מסריחות 🧦", "פיצה עם אננס 🍕", "טיול שנתי 🚌", 
             "שיעור חשבון 📐", "יוטיוב 📺", "המבורגר 🍔", 
             "רופא שיניים 🦷", "בריכת כדורים 🎈", "סמארטפון 📱", 
-            "חופשה באילת 🏖️", "פופקורן 🍿", "מסיבת הפתעה 🥳"
+            "חופשה באילת 🏖️", "פופקורן 🍿", "מסיבת הפתעה 🥳",
+            "שוקולד השחר 🍫", "נעלי בית 👟", "שלט של טלוויזיה 📺"
         ];
 
         const questionsList = [
@@ -68,13 +69,14 @@
 
         function startGame() {
             let val = document.getElementById('pNames').value;
-            if(!val.includes(',')) return alert("אופס! שכחת פסיק בין השמות 😅");
+            if(!val.includes(',')) return alert("שכחת פסיק בין השמות! 😅");
             
             players = val.split(',').map(n => n.trim());
-            if(players.length < 3) return alert("צריך לפחות 3 שחקנים למשחק טוב! 👥");
+            if(players.length < 3) return alert("צריך לפחות 3 שחקנים! 👥");
 
+            // בחירה אחת לכל המשחק!
             spy = players[Math.floor(Math.random() * players.length)];
-            word = wordsList[Math.floor(Math.random() * wordsList.length)];
+            selectedWord = wordsList[Math.floor(Math.random() * wordsList.length)];
             
             document.getElementById('setup').classList.add('hidden');
             document.getElementById('reveal').classList.remove('hidden');
@@ -90,7 +92,8 @@
 
         function showWord() {
             let isSpy = (players[pIdx] === spy);
-            let content = isSpy ? "אתה החפרפרת חביבי! 😈" : "המילה הסודית: " + word;
+            // כאן התיקון - כולם מקבלים את selectedWord
+            let content = isSpy ? "אתה החפרפרת חביבי! 😈" : "המילה הסודית: " + selectedWord;
             
             let display = document.getElementById('wordContent');
             display.innerText = content;
@@ -113,7 +116,7 @@
         }
 
         function generateQuestion() {
-            if(qCount < 4) { 
+            if(qCount < 5) { 
                 let asker = players[Math.floor(Math.random() * players.length)];
                 let answerer = players[Math.floor(Math.random() * players.length)];
                 while(asker === answerer) answerer = players[Math.floor(Math.random() * players.length)];
@@ -127,7 +130,6 @@
                 document.getElementById('qInfo').innerText = "זהו זה!";
                 document.getElementById('qText').innerText = "זמן להחליט... מי החפרפרת? 🤔";
                 document.getElementById('nextQBtn').classList.add('hidden');
-                document.getElementById('toVoteBtn').classList.remove('hidden');
             }
         }
     </script>
