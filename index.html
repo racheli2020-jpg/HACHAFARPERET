@@ -3,108 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🕵️‍♂️ החפרפרת</title>
+    <title>משחק החפרפרת 🕵️‍♂️</title>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #2c3e50; color: white; padding: 20px; margin: 0; }
-        .card { background: #ecf0f1; color: #2c3e50; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 450px; margin: 20px auto; }
+        body { font-family: system-ui, -apple-system, sans-serif; text-align: center; background: #2c3e50; color: white; padding: 20px; }
+        .card { background: #fdfdfd; color: #333; padding: 25px; border-radius: 15px; max-width: 400px; margin: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         .hidden { display: none; }
-        button { padding: 15px; margin: 10px; width: 85%; border-radius: 12px; border: none; cursor: pointer; background: #e74c3c; color: white; font-weight: bold; font-size: 18px; }
+        button { padding: 12px 20px; margin: 10px; width: 90%; border-radius: 10px; border: none; cursor: pointer; background: #e74c3c; color: white; font-size: 18px; font-weight: bold; }
         input { padding: 12px; width: 85%; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; text-align: center; }
-        .spy-text { color: #e74c3c; font-weight: bold; font-size: 1.8em; }
-        .q-box { background: #dfe6e9; padding: 15px; border-radius: 15px; border-right: 8px solid #3498db; margin: 20px 0; }
-        .vote-btn { background: #34495e; margin: 5px; width: 80%; }
+        .spy-text { color: #e74c3c; font-weight: bold; font-size: 1.5em; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1>🕵️‍♂️ משחק החפרפרת</h1>
+        <h1>🕵️‍♂️ החפרפרת</h1>
         
-        <div id="setup">
-            <p>מי משחק? (שמות עם פסיקים):</p>
-            <input type="text" id="pNames" placeholder="רחלי, אמא, אבא...">
-            <button onclick="startGame()">🚀 יוצאים לדרך!</button>
+        <div id="step1">
+            <p>רשמו שמות (מופרדים בפסיק):</p>
+            <input type="text" id="namesInput" placeholder="יוסי, שרה, רבקה">
+            <button onclick="initGame()">התחל משחק 🚀</button>
         </div>
 
-        <div id="reveal" class="hidden">
-            <h2 id="turnName"></h2>
-            <div id="wordBox" class="hidden" style="margin: 20px 0;">
-                <p id="wordContent" style="font-size: 1.4em;"></p>
-            </div>
-            <button id="showBtn" onclick="showWord()">👁️ חשוף מילה</button>
-            <button id="nextBtn" class="hidden" onclick="nextPlayer()">✅ הבנתי</button>
+        <div id="step2" class="hidden">
+            <h2 id="turnDisplay"></h2>
+            <p id="wordDisplay" class="hidden" style="font-size: 1.3em; margin: 20px;"></p>
+            <button id="revealBtn" onclick="revealWord()">חשוף מילה 👁️</button>
+            <button id="nextPlayerBtn" class="hidden" onclick="goToNextPlayer()">הבנתי, לשחקן הבא ✅</button>
         </div>
 
-        <div id="game" class="hidden">
-            <h2>🔎 שלב החקירה!</h2>
-            <div class="q-box">
-                <p id="qInfo" style="color: #7f8c8d;"></p>
-                <p id="qText" style="font-size: 1.3em; font-weight: bold; color: #2980b9;"></p>
-            </div>
-            <button onclick="showNextQuestion()">❓ לשאלה הבאה</button>
-        </div>
-
-        <div id="vote" class="hidden">
-            <h2>🗳️ הצבעה חשאית</h2>
-            <p id="voterName"></p>
-            <div id="voteOptions"></div>
-        </div>
-
-        <div id="results" class="hidden">
-            <h1 id="winStatus"></h1>
-            <p id="spyRevealText" style="font-size: 1.5em;"></p>
-            <button onclick="location.reload()">🔄 משחק חדש</button>
+        <div id="step3" class="hidden">
+            <h2>🔎 שלב השאלות!</h2>
+            <p id="questionDisplay" style="font-weight: bold; font-size: 1.2em;"></p>
+            <button onclick="nextQuestion()">שאלה הבאה ❓</button>
         </div>
     </div>
 
     <script>
-        let players = [], spy = "", selectedWord = "", pIdx = 0;
-        let questionsQueue = [], votes = {}, currentVoterIdx = 0;
+        let players = [], spy = "", word = "", index = 0;
+        const words = ["פיצה 🍕", "סמארטפון 📱", "אוטובוס 🚌", "גלידה 🍦", "טיסה ✈️"];
+        const questions = ["איפה מוצאים את זה?", "כמה זה עולה?", "זה גדול יותר מחתול?", "זה טעים?"];
 
-        const wordsList = ["גרביים מסריחות 🧦", "פיצה עם אננס 🍕", "טיול שנתי 🚌", "שיעור חשבון 📐", "יוטיוב 📺", "המבורגר 🍔", "רופא שיניים 🦷", "סמארטפון 📱", "חופשה באילת 🏖️", "פופקורן 🍿"];
-        const questionsList = ["איך זה נראה? 🤔", "באיזה צבע זה? 🎨", "גדול או קטן מפיל? 🐘", "אפשר לאכול את זה? 😋", "זה עולה הרבה כסף? 💰", "מתי ראית את זה לאחרונה? 🕒", "זה עושה רעש? 🔊", "לוקחים את זה לירח? 🌙"];
-
-        function startGame() {
-            let val = document.getElementById('pNames').value;
-            if(!val.includes(',')) { alert("שכחת פסיק!"); return; }
-            players = val.split(',').map(n => n.trim());
-            if(players.length < 3) { alert("צריך לפחות 3 שחקנים!"); return; }
-            
+        function initGame() {
+            let input = document.getElementById('namesInput').value;
+            if(!input.includes(',')) return alert("אנא הכניסו שמות עם פסיקים");
+            players = input.split(',').map(s => s.trim());
             spy = players[Math.floor(Math.random() * players.length)];
-            selectedWord = wordsList[Math.floor(Math.random() * wordsList.length)];
+            word = words[Math.floor(Math.random() * words.length)];
             
-            document.getElementById('setup').classList.add('hidden');
-            document.getElementById('reveal').classList.remove('hidden');
-            updateRevealUI();
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+            updateTurn();
         }
 
-        function updateRevealUI() {
-            document.getElementById('turnName').innerText = "תור: " + players[pIdx];
-            document.getElementById('wordBox').classList.add('hidden');
-            document.getElementById('showBtn').classList.remove('hidden');
-            document.getElementById('nextBtn').classList.add('hidden');
+        function updateTurn() {
+            document.getElementById('turnDisplay').innerText = "תור: " + players[index];
+            document.getElementById('wordDisplay').classList.add('hidden');
+            document.getElementById('revealBtn').classList.remove('hidden');
+            document.getElementById('nextPlayerBtn').classList.add('hidden');
         }
 
-        function showWord() {
-            let isSpy = (players[pIdx] === spy);
-            let content = document.getElementById('wordContent');
-            content.innerText = isSpy ? "אתה החפרפרת חביבי! 😈" : "המילה היא: " + selectedWord;
-            content.className = isSpy ? "spy-text" : "";
-            document.getElementById('wordBox').classList.remove('hidden');
-            document.getElementById('showBtn').classList.add('hidden');
-            document.getElementById('nextBtn').classList.remove('hidden');
+        function revealWord() {
+            let display = document.getElementById('wordDisplay');
+            display.innerText = (players[index] === spy) ? "אתה החפרפרת! 😈" : "המילה: " + word;
+            display.classList.remove('hidden');
+            document.getElementById('revealBtn').classList.add('hidden');
+            document.getElementById('nextPlayerBtn').classList.remove('hidden');
         }
 
-        function nextPlayer() {
-            pIdx++;
-            if(pIdx < players.length) {
-                updateRevealUI();
+        function goToNextPlayer() {
+            index++;
+            if(index < players.length) {
+                updateTurn();
             } else {
-                startQuestionPhase();
+                document.getElementById('step2').classList.add('hidden');
+                document.getElementById('step3').classList.remove('hidden');
+                nextQuestion();
             }
         }
 
-        function startQuestionPhase() {
-            let qs = [...questionsList].sort(() => 0.5 - Math.random());
-            for(let i=0; i < players.length; i++) {
-                questionsQueue.push({asker: players[i], answerer: players[(i+1)%players.length], q: qs[i % qs.length]});
-                questionsQueue.push({asker: players[i], answerer: players
+        function nextQuestion() {
+            let q = questions[Math.floor(Math.random() * questions.length)];
+            document.getElementById('questionDisplay').innerText = q;
+        }
+    </script>
+</body>
+</html>
