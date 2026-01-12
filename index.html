@@ -2,13 +2,13 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>🕵️‍♂️ החפרפרת - גרסת הברזל</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🕵️‍♂️ החפרפרת</title>
     <style>
         body { font-family: sans-serif; text-align: center; background: #2c3e50; color: white; padding: 20px; margin: 0; }
         .card { background: #ecf0f1; color: #2c3e50; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 450px; margin: 20px auto; }
         .hidden { display: none; }
         button { padding: 15px; margin: 10px; width: 85%; border-radius: 12px; border: none; cursor: pointer; background: #e74c3c; color: white; font-weight: bold; font-size: 18px; }
-        button:hover { background: #c0392b; }
         input { padding: 12px; width: 85%; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; text-align: center; }
         .spy-text { color: #e74c3c; font-weight: bold; font-size: 1.8em; }
         .q-box { background: #dfe6e9; padding: 15px; border-radius: 15px; border-right: 8px solid #3498db; margin: 20px 0; }
@@ -22,7 +22,7 @@
         <div id="setup">
             <p>מי משחק? (שמות עם פסיקים):</p>
             <input type="text" id="pNames" placeholder="רחלי, אמא, אבא...">
-            <button id="startBtn">🚀 יוצאים לדרך!</button>
+            <button onclick="startGame()">🚀 יוצאים לדרך!</button>
         </div>
 
         <div id="reveal" class="hidden">
@@ -30,8 +30,8 @@
             <div id="wordBox" class="hidden" style="margin: 20px 0;">
                 <p id="wordContent" style="font-size: 1.4em;"></p>
             </div>
-            <button id="showBtn">👁️ חשוף מילה</button>
-            <button id="nextBtn" class="hidden">✅ הבנתי</button>
+            <button id="showBtn" onclick="showWord()">👁️ חשוף מילה</button>
+            <button id="nextBtn" class="hidden" onclick="nextPlayer()">✅ הבנתי</button>
         </div>
 
         <div id="game" class="hidden">
@@ -40,7 +40,7 @@
                 <p id="qInfo" style="color: #7f8c8d;"></p>
                 <p id="qText" style="font-size: 1.3em; font-weight: bold; color: #2980b9;"></p>
             </div>
-            <button id="nextQBtn">❓ לשאלה הבאה</button>
+            <button onclick="showNextQuestion()">❓ לשאלה הבאה</button>
         </div>
 
         <div id="vote" class="hidden">
@@ -57,120 +57,54 @@
     </div>
 
     <script>
-        window.onload = function() {
-            let players = [], spy = "", selectedWord = "", pIdx = 0;
-            let questionsQueue = [], votes = {}, currentVoterIdx = 0;
+        let players = [], spy = "", selectedWord = "", pIdx = 0;
+        let questionsQueue = [], votes = {}, currentVoterIdx = 0;
 
-            const wordsList = ["גרביים מסריחות 🧦", "פיצה עם אננס 🍕", "טיול שנתי 🚌", "שיעור חשבון 📐", "יוטיוב 📺", "המבורגר 🍔", "רופא שיניים 🦷", "סמארטפון 📱", "חופשה באילת 🏖️", "פופקורן 🍿"];
-            const questionsList = ["איך זה נראה? 🤔", "באיזה צבע זה? 🎨", "גדול או קטן מפיל? 🐘", "אפשר לאכול את זה? 😋", "זה עולה הרבה כסף? 💰", "מתי ראית את זה לאחרונה? 🕒", "זה עושה רעש? 🔊", "לוקחים את זה לירח? 🌙"];
+        const wordsList = ["גרביים מסריחות 🧦", "פיצה עם אננס 🍕", "טיול שנתי 🚌", "שיעור חשבון 📐", "יוטיוב 📺", "המבורגר 🍔", "רופא שיניים 🦷", "סמארטפון 📱", "חופשה באילת 🏖️", "פופקורן 🍿"];
+        const questionsList = ["איך זה נראה? 🤔", "באיזה צבע זה? 🎨", "גדול או קטן מפיל? 🐘", "אפשר לאכול את זה? 😋", "זה עולה הרבה כסף? 💰", "מתי ראית את זה לאחרונה? 🕒", "זה עושה רעש? 🔊", "לוקחים את זה לירח? 🌙"];
 
-            // התחלת משחק
-            document.getElementById('startBtn').onclick = function() {
-                let val = document.getElementById('pNames').value;
-                if(!val.includes(',')) { alert("שכחת פסיק!"); return; }
-                players = val.split(',').map(n => n.trim());
-                if(players.length < 3) { alert("צריך לפחות 3 שחקנים!"); return; }
-                
-                spy = players[Math.floor(Math.random() * players.length)];
-                selectedWord = wordsList[Math.floor(Math.random() * wordsList.length)];
-                
-                document.getElementById('setup').classList.add('hidden');
-                document.getElementById('reveal').classList.remove('hidden');
+        function startGame() {
+            let val = document.getElementById('pNames').value;
+            if(!val.includes(',')) { alert("שכחת פסיק!"); return; }
+            players = val.split(',').map(n => n.trim());
+            if(players.length < 3) { alert("צריך לפחות 3 שחקנים!"); return; }
+            
+            spy = players[Math.floor(Math.random() * players.length)];
+            selectedWord = wordsList[Math.floor(Math.random() * wordsList.length)];
+            
+            document.getElementById('setup').classList.add('hidden');
+            document.getElementById('reveal').classList.remove('hidden');
+            updateRevealUI();
+        }
+
+        function updateRevealUI() {
+            document.getElementById('turnName').innerText = "תור: " + players[pIdx];
+            document.getElementById('wordBox').classList.add('hidden');
+            document.getElementById('showBtn').classList.remove('hidden');
+            document.getElementById('nextBtn').classList.add('hidden');
+        }
+
+        function showWord() {
+            let isSpy = (players[pIdx] === spy);
+            let content = document.getElementById('wordContent');
+            content.innerText = isSpy ? "אתה החפרפרת חביבי! 😈" : "המילה היא: " + selectedWord;
+            content.className = isSpy ? "spy-text" : "";
+            document.getElementById('wordBox').classList.remove('hidden');
+            document.getElementById('showBtn').classList.add('hidden');
+            document.getElementById('nextBtn').classList.remove('hidden');
+        }
+
+        function nextPlayer() {
+            pIdx++;
+            if(pIdx < players.length) {
                 updateRevealUI();
-            };
-
-            function updateRevealUI() {
-                document.getElementById('turnName').innerText = "תור: " + players[pIdx];
-                document.getElementById('wordBox').classList.add('hidden');
-                document.getElementById('showBtn').classList.remove('hidden');
-                document.getElementById('nextBtn').classList.add('hidden');
+            } else {
+                startQuestionPhase();
             }
+        }
 
-            document.getElementById('showBtn').onclick = function() {
-                let isSpy = (players[pIdx] === spy);
-                let content = document.getElementById('wordContent');
-                content.innerText = isSpy ? "אתה החפרפרת חביבי! 😈" : "המילה היא: " + selectedWord;
-                content.className = isSpy ? "spy-text" : "";
-                document.getElementById('wordBox').classList.remove('hidden');
-                document.getElementById('showBtn').classList.add('hidden');
-                document.getElementById('nextBtn').classList.remove('hidden');
-            };
-
-            document.getElementById('nextBtn').onclick = function() {
-                pIdx++;
-                if(pIdx < players.length) {
-                    updateRevealUI();
-                } else {
-                    startQuestionPhase();
-                }
-            };
-
-            function startQuestionPhase() {
-                let qs = [...questionsList].sort(() => 0.5 - Math.random());
-                for(let i=0; i < players.length; i++) {
-                    questionsQueue.push({asker: players[i], answerer: players[(i+1)%players.length], q: qs[i % qs.length]});
-                    questionsQueue.push({asker: players[i], answerer: players[(i+players.length-1)%players.length], q: qs[(i+4) % qs.length]});
-                }
-                document.getElementById('reveal').classList.add('hidden');
-                document.getElementById('game').classList.remove('hidden');
-                showNextQuestion();
-            }
-
-            function showNextQuestion() {
-                if(questionsQueue.length > 0) {
-                    let c = questionsQueue.shift();
-                    document.getElementById('qInfo').innerText = c.asker + " שואל/ת את " + c.answerer;
-                    document.getElementById('qText').innerText = c.q;
-                } else {
-                    startVotePhase();
-                }
-            }
-
-            document.getElementById('nextQBtn').onclick = showNextQuestion;
-
-            function startVotePhase() {
-                document.getElementById('game').classList.add('hidden');
-                document.getElementById('vote').classList.remove('hidden');
-                players.forEach(p => votes[p] = 0);
-                showVoteTurn();
-            }
-
-            function showVoteTurn() {
-                if(currentVoterIdx < players.length) {
-                    document.getElementById('voterName').innerText = "תור " + players[currentVoterIdx] + " להצביע:";
-                    let html = "";
-                    players.forEach(p => {
-                        if(p !== players[currentVoterIdx]) {
-                            html += <button class="vote-btn" onclick="registerVote('${p}')">${p}</button>;
-                        }
-                    });
-                    document.getElementById('voteOptions').innerHTML = html;
-                } else {
-                    showFinalResults();
-                }
-            }
-
-            // פונקציה גלובלית כדי שהכפתורים שנוצרים ב-HTML יעבדו
-            window.registerVote = function(p) {
-                votes[p]++;
-                currentVoterIdx++;
-                showVoteTurn();
-            };
-
-            function showFinalResults() {
-                document.getElementById('vote').classList.add('hidden');
-                document.getElementById('results').classList.remove('hidden');
-                let suspected = Object.keys(votes).reduce((a, b) => votes[a] > votes[b] ? a : b);
-                
-                if(suspected === spy) {
-                    document.getElementById('winStatus').innerText = "ניצחתם! 🎉";
-                } else {
-                    document.getElementById('winStatus').innerText = "החפרפרת ניצחה! 😈";
-                }
-                document.getElementById('spyRevealText').innerText = "החפרפרת הייתה: " + spy;
-            }
-        };
-    </script>
-</body>
-</html>
-
+        function startQuestionPhase() {
+            let qs = [...questionsList].sort(() => 0.5 - Math.random());
+            for(let i=0; i < players.length; i++) {
+                questionsQueue.push({asker: players[i], answerer: players[(i+1)%players.length], q: qs[i % qs.length]});
+                questionsQueue.push({asker: players[i], answerer: players
